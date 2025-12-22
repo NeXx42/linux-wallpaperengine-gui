@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -14,9 +15,20 @@ public partial class HomePage : UserControl
     public const string DEFAULT_SCALING_NAME = "Default";
 
     public const int ENTRY_SIZE = 150;
-    public const int ENTRIES_PER_PAGE = 999;
+    public const int ENTRIES_PER_PAGE = 50;
 
-    private long? currentlySelectedWallpaper;
+    private int loadedPages = 0;
+
+    private long? currentlySelectedWallpaper
+    {
+        set
+        {
+            m_currentlySelectedWallpaper = value;
+            grid_SidePanel.IsVisible = m_currentlySelectedWallpaper.HasValue;
+        }
+        get => m_currentlySelectedWallpaper;
+    }
+    private long? m_currentlySelectedWallpaper;
 
     public HomePage()
     {
@@ -24,7 +36,10 @@ public partial class HomePage : UserControl
         SetupBasicOptions();
 
         if (!Design.IsDesignMode)
+        {
+            WorkshopManager.RefreshLocalEntries();
             DrawWallpapers();
+        }
     }
 
     private void SetupBasicOptions()
@@ -44,12 +59,13 @@ public partial class HomePage : UserControl
 
         inp_SidePanel_OffsetX.Minimum = -1;
         inp_SidePanel_OffsetX.Maximum = 1;
+
+        btn_LoadMore.RegisterClick(LoadExtraEntries);
     }
 
     private async void DrawWallpapers()
     {
-        WorkshopManager.RefreshLocalEntries();
-        WorkshopEntry[] wallpapers = WorkshopManager.GetCachedWallpaperEntries(0, ENTRIES_PER_PAGE);
+        WorkshopEntry[] wallpapers = WorkshopManager.GetCachedWallpaperEntries(loadedPages * ENTRIES_PER_PAGE, ENTRIES_PER_PAGE);
 
         foreach (WorkshopEntry wallpaper in wallpapers)
         {
@@ -90,5 +106,18 @@ public partial class HomePage : UserControl
 
         options.screens = WallpaperSetter.WorkOutScreenOffsets((float)inp_SidePanel_OffsetX.Value, (float)inp_SidePanel_OffsetY.Value);
         WallpaperSetter.SetWallpaper(entry!.path, options);
+    }
+
+    private void LoadExtraEntries()
+    {
+        loadedPages++;
+        DrawWallpapers();
+
+        int maxPages = (int)Math.Ceiling(WorkshopManager.GetWallpaperCount() / (float)ENTRIES_PER_PAGE);
+
+        if (loadedPages >= maxPages - 1)
+        {
+            btn_LoadMore.IsVisible = false;
+        }
     }
 }

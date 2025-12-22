@@ -6,16 +6,19 @@
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="500"/>
+      <ColumnDefinition Width="Auto"/>
     </Grid.ColumnDefinitions>
 
     <Grid Grid.Column="0" x:Name="grid_Content">
-      <ScrollViewer>
-        <WrapPanel x:Name="grid_Content_Container" Margin="10" HorizontalAlignment="Center" ItemSpacing="15" LineSpacing="15"/>
+      <ScrollViewer Margin="20">
+        <StackPanel Spacing="20">
+          <WrapPanel x:Name="grid_Content_Container" HorizontalAlignment="Center" ItemSpacing="15" LineSpacing="15"/>
+          <Common:Common_Button Label="Load More" Height="40" Width="200" x:Name="btn_LoadMore"/>
+        </StackPanel>
       </ScrollViewer>
     </Grid>
 
-    <Grid x:Name="grid_SidePanel" Background="{DynamicResource bg_Panel}" Grid.Column="1">
+    <Grid x:Name="grid_SidePanel" Background="{DynamicResource bg_Panel}" Grid.Column="1" Width="500" IsVisible="False">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"/>
         <RowDefinition Height="80"/>
@@ -29,16 +32,41 @@
             <Border x:Name="img_SidePanel_Icon" Background="Green" Margin="2" CornerRadius="5" ClipToBounds="True"/>
           </Border>
 
-          <Label Content="Fill"/>
-          <ComboBox x:Name="inp_SidePanel_Scaling"/>
+          <Label Content="Default Settings" FontSize="26"/>
+          <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+            <StackPanel Margin="20" Spacing="5">
 
-          <Label Content="Clamp"/>
-          <ComboBox x:Name="inp_SidePanel_Clamp"/>
+              <Grid ColumnDefinitions="100, *">
+                <Label Content="Fill"/>
+                <ComboBox x:Name="inp_SidePanel_Scaling" Grid.Column="1"/>
+              </Grid>
 
-          <Label Content="Offset X"/>
-          <Slider x:Name="inp_SidePanel_OffsetX"/>
-          <Label Content="Offset Y"/>
-          <Slider x:Name="inp_SidePanel_OffsetY"/>
+              <Grid ColumnDefinitions="100, *">
+                <Label Content="Clamp"/>
+                <ComboBox x:Name="inp_SidePanel_Clamp" Grid.Column="1"/>
+              </Grid>
+
+              <Grid ColumnDefinitions="100, *">
+                <Label Content="Offset X"/>
+                <Slider x:Name="inp_SidePanel_OffsetX" Grid.Column="1"/>
+              </Grid>
+              <Grid ColumnDefinitions="100, *">
+                <Label Content="Offset Y"/>
+                <Slider x:Name="inp_SidePanel_OffsetY" Grid.Column="1"/>
+              </Grid>
+
+            </StackPanel>
+          </Border>
+
+
+          <Label Content="Custom Properties" FontSize="26"/>
+
+          <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+            <StackPanel Margin="20" Spacing="5">
+
+            </StackPanel>
+          </Border>
+
         </StackPanel>
       </ScrollViewer>
       <Border Background="{DynamicResource bg_Panel_Light}" Grid.Row="1" VerticalAlignment="Bottom" Height="80" Margin="10" CornerRadius="5">

@@ -3,11 +3,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace AvaloniaUI.Pages.Settings.Display;
+namespace AvaloniaUI.Pages.Settings.General;
 
-public partial class SettingsPage_Display : UserControl, ISettingsPage
+public partial class SettingsPage_General : UserControl, ISettingsPage
 {
-    public SettingsPage_Display()
+    public SettingsPage_General()
     {
         InitializeComponent();
     }
@@ -17,9 +17,9 @@ public partial class SettingsPage_Display : UserControl, ISettingsPage
         this.IsVisible = false;
     }
 
-    public async Task OnOpen()
+    public Task OnOpen()
     {
         this.IsVisible = true;
-        await comp_DisplayGroups.Draw();
+        return Task.CompletedTask;
     }
 }

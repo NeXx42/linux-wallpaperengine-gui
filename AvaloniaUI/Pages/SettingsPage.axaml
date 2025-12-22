@@ -3,23 +3,31 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="1080" x:Class="AvaloniaUI.Pages.SettingsPage"
   xmlns:Common="clr-namespace:AvaloniaUI.Common"
-  xmlns:Settings_Display="clr-namespace:AvaloniaUI.Pages.Settings.Display">
-  <Border Background="Green" CornerRadius="25" Margin="20" BoxShadow="0 0 25 0 Black">
+  xmlns:Settings_Display="clr-namespace:AvaloniaUI.Pages.Settings.Display"
+  xmlns:Settings_Directories="clr-namespace:AvaloniaUI.Pages.Settings.Directories"
+  xmlns:Settings_General="clr-namespace:AvaloniaUI.Pages.Settings.General">
+  <Border Background="{DynamicResource bg_Panel}" CornerRadius="5" Margin="20" BoxShadow="0 0 25 0 Black">
     <Grid Margin="10" ColumnSpacing="10">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="200"/>
+        <ColumnDefinition Width="250"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
       <ScrollViewer>
-        <StackPanel Margin="10">
-          <Common:Common_Button Label="Displays" VerticalAlignment="Stretch" Height="40"/>
+        <StackPanel Margin="10" Spacing="20">
+          <Common:Common_Button Label="General" Height="40" x:Name="btn_General"/>
+          <Common:Common_Button Label="Displays" Height="40" x:Name="btn_Displays"/>
+          <Common:Common_Button Label="Directories" Height="40" x:Name="btn_Directories"/>
         </StackPanel>
       </ScrollViewer>
 
-      <Grid Grid.Column="1" Background="Blue">
+      <Grid Grid.Column="1">
         <ScrollViewer Margin="10">
-          <Settings_Display:SettingsPage_Display x:Name="SettingsGroup_Display"/>
+          <StackPanel Spacing="5">
+            <Settings_General:SettingsPage_General x:Name="page_General"/>
+            <Settings_Display:SettingsPage_Display x:Name="page_Display"/>
+            <Settings_Directories:SettingsPage_Directories x:Name="page_Directories"/>
+          </StackPanel>
         </ScrollViewer>
       </Grid>
 

@@ -18,6 +18,7 @@ public static class WorkshopManager
     private static Dictionary<long, WorkshopEntry> cachedEntries = new Dictionary<long, WorkshopEntry>();
 
 
+
     public static async Task Init(Func<string, Task<object?>> iconFetchTask)
     {
         WorkshopManager.iconFetchTask = iconFetchTask;
@@ -26,6 +27,7 @@ public static class WorkshopManager
         iconThread.Start();
     }
 
+    public static int GetWallpaperCount() => cachedEntries.Count;
 
     public static void RefreshLocalEntries()
     {

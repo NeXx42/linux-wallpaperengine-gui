@@ -11,12 +11,13 @@
             </Grid.ColumnDefinitions>
 
             <Grid Grid.Column="0" Background="{DynamicResource bg_Panel}">
-                <Button Content="X" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="5" x:Name="btn_Settings"/>
+                <Button Content="[]" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="5" x:Name="btn_Settings">
+                </Button>
             </Grid>
 
-            <Pages:HomePage Grid.Column="1"/>
+            <Pages:HomePage Grid.Column="1" x:Name="Page_HomePage"/>
         </Grid>
-        <Grid x:Name="Settings" Background="#a0000000">
+        <Grid x:Name="cont_SettingsContainer" Background="#a0000000">
             <Pages:SettingsPage x:Name="Page_Settings" Margin="100" />
         </Grid>
     </Grid>

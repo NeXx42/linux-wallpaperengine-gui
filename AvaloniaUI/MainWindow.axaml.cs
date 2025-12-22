@@ -16,8 +16,10 @@ public partial class MainWindow : Window
 
         blurEffect = new ImmutableBlurEffect(5);
 
-        Settings.PointerPressed += (_, __) => ToggleSettings(false);
         btn_Settings.Click += (_, __) => ToggleSettings(true);
+
+        cont_SettingsContainer.PointerPressed += (_, __) => ToggleSettings(false);
+        Page_Settings.PointerPressed += (_, e) => e.Handled = true;
 
         ToggleSettings(false);
     }
@@ -41,7 +43,7 @@ public partial class MainWindow : Window
     public void ToggleSettings(bool to)
     {
         Pages.Effect = to ? blurEffect : null;
-        Settings.IsVisible = to;
+        cont_SettingsContainer.IsVisible = to;
 
         if (to)
             Page_Settings.OnOpen();

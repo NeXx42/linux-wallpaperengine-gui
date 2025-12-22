@@ -70,6 +70,31 @@ public static class WallpaperSetter
         Process p = new Process();
         p.StartInfo = info;
         p.Start();
+
+        SaveCommandToFile(info);
+    }
+
+    private static void SaveCommandToFile(ProcessStartInfo arguments)
+    {
+        ProcessStartInfo info = new ProcessStartInfo();
+        info.FileName = "/bin/echo";
+
+        info.ArgumentList.Add(cachedExecutableLocation!);
+
+        foreach (var arg in arguments.ArgumentList)
+            info.ArgumentList.Add(arg);
+
+        info.RedirectStandardOutput = true;
+
+        using (Process p = Process.Start(info))
+        {
+            using (var writer = new System.IO.StreamWriter("/home/matth/Documents/arguments.txt"))
+            {
+                writer.Write(p.StandardOutput.ReadToEnd());
+            }
+
+            p.WaitForExit();
+        }
     }
 
     private static void KillExistingRuns(string exeName)
@@ -118,9 +143,12 @@ public static class WallpaperSetter
         }
 
 
-        public ProcessStartInfo CreateArgList()
+        public ProcessStartInfo CreateArgList(params string[] injectedArgs)
         {
             ProcessStartInfo info = new ProcessStartInfo();
+
+            foreach (string arg in injectedArgs)
+                info.ArgumentList.Add(arg);
 
             if (scalingOption.HasValue)
             {
