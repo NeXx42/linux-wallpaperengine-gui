@@ -7,10 +7,14 @@ namespace AvaloniaUI;
 
 public partial class MainWindow : Window
 {
+    public static MainWindow? instance { private set; get; }
+
     private ImmutableBlurEffect? blurEffect;
 
     public MainWindow()
     {
+        instance = this;
+
         InitializeComponent();
         RegisterScreens();
 

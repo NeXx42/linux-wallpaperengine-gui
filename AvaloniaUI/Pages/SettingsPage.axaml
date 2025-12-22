@@ -14,7 +14,7 @@
       </Grid.ColumnDefinitions>
 
       <ScrollViewer>
-        <StackPanel Margin="10" Spacing="20">
+        <StackPanel Margin="10" Spacing="5">
           <Common:Common_Button Label="General" Height="40" x:Name="btn_General"/>
           <Common:Common_Button Label="Displays" Height="40" x:Name="btn_Displays"/>
           <Common:Common_Button Label="Directories" Height="40" x:Name="btn_Directories"/>
@@ -23,10 +23,8 @@
 
       <Grid Grid.Column="1">
         <ScrollViewer Margin="10">
-          <StackPanel Spacing="5">
-            <Settings_General:SettingsPage_General x:Name="page_General"/>
-            <Settings_Display:SettingsPage_Display x:Name="page_Display"/>
-            <Settings_Directories:SettingsPage_Directories x:Name="page_Directories"/>
+          <StackPanel Spacing="5" x:Name="cont_settingsGroups">
+
           </StackPanel>
         </ScrollViewer>
       </Grid>

@@ -49,7 +49,7 @@ public static class WallpaperSetter
         return res;
     }
 
-    public static void SetWallpaper(string path, WallpaperOptions options)
+    public static async Task SetWallpaper(string path, WallpaperOptions options)
     {
         if (string.IsNullOrEmpty(cachedExecutableLocation))
         {
@@ -71,11 +71,22 @@ public static class WallpaperSetter
         p.StartInfo = info;
         p.Start();
 
-        //SaveCommandToFile(info);
+        dbo_Config? saveScriptLocation = await ConfigManager.GetConfigValue(ConfigManager.ConfigKeys.SaveStartupScriptLocation);
+
+        if (saveScriptLocation != null)
+        {
+            await SaveCommandToFile(info, saveScriptLocation.value);
+        }
     }
 
-    private static async Task SaveCommandToFile(ProcessStartInfo arguments)
+    private static async Task SaveCommandToFile(ProcessStartInfo arguments, string? path)
     {
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        if (File.Exists(path))
+            File.Delete(path);
+
         ProcessStartInfo info = new ProcessStartInfo();
         info.FileName = "/bin/echo";
 
@@ -88,9 +99,10 @@ public static class WallpaperSetter
 
         using (Process p = Process.Start(info)!)
         {
-            using (var writer = new StreamWriter("/home/matth/Documents/arguments.txt"))
+            using (var writer = new StreamWriter(path))
             {
-                writer.Write(await p.StandardOutput.ReadToEndAsync());
+                await writer.WriteLineAsync("#!/bin/bash");
+                await writer.WriteLineAsync(await p.StandardOutput.ReadToEndAsync());
             }
 
             p.WaitForExit();

@@ -10,6 +10,8 @@ public static class ConfigManager
     {
         ExecutableLocation,
         WorkshopLocations,
+
+        SaveStartupScriptLocation
     }
 
     public static string[]? localWorkshopLocations { private set; get; }
@@ -84,7 +86,22 @@ public static class ConfigManager
     public static async Task<dbo_Config?> GetConfigValue(ConfigKeys key) => (await GetConfigValues(key)).FirstOrDefault();
     public static async Task<dbo_Config[]> GetConfigValues(ConfigKeys key) => await Database_Manager.GetItems<dbo_Config>(SQLFilter.Equal(nameof(dbo_Config.key), key.ToString()));
 
+    public static async Task SetConfigValue(ConfigKeys key, string? to, bool deleteIfNull = true)
+    {
+        if (deleteIfNull && string.IsNullOrEmpty(to))
+        {
+            await Database_Manager.Delete<dbo_Config>(SQLFilter.Equal(nameof(dbo_Config.key), key.ToString()));
+            return;
+        }
 
+        dbo_Config change = new dbo_Config()
+        {
+            key = key.ToString(),
+            value = to
+        };
+
+        await Database_Manager.AddOrUpdate(change, (x) => SQLFilter.Equal(nameof(dbo_Config.key), change.key), nameof(change.value));
+    }
 
 
     public struct Screen

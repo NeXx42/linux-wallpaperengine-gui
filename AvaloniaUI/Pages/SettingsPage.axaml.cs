@@ -18,14 +18,16 @@ public partial class SettingsPage : UserControl
         InitializeComponent();
 
         pages = [
-            (btn_General, page_General),
-            (btn_Displays, page_Display),
-            (btn_Directories, page_Directories),
+            (btn_General, new SettingsPage_SettingsGroup_General()),
+            (btn_Displays, new SettingsPage_SettingsGroup_Display()),
+            (btn_Directories, new SettingsPage_SettingsGroup_Directories()),
         ];
 
         for (int i = 0; i < pages.Length; i++)
         {
             int temp = i;
+
+            cont_settingsGroups.Children.Add(pages[i].page.Setup());
             pages[i].btn.RegisterClick(() => OpenPage(temp));
         }
     }
