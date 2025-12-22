@@ -71,10 +71,10 @@ public static class WallpaperSetter
         p.StartInfo = info;
         p.Start();
 
-        SaveCommandToFile(info);
+        //SaveCommandToFile(info);
     }
 
-    private static void SaveCommandToFile(ProcessStartInfo arguments)
+    private static async Task SaveCommandToFile(ProcessStartInfo arguments)
     {
         ProcessStartInfo info = new ProcessStartInfo();
         info.FileName = "/bin/echo";
@@ -86,11 +86,11 @@ public static class WallpaperSetter
 
         info.RedirectStandardOutput = true;
 
-        using (Process p = Process.Start(info))
+        using (Process p = Process.Start(info)!)
         {
-            using (var writer = new System.IO.StreamWriter("/home/matth/Documents/arguments.txt"))
+            using (var writer = new StreamWriter("/home/matth/Documents/arguments.txt"))
             {
-                writer.Write(p.StandardOutput.ReadToEnd());
+                writer.Write(await p.StandardOutput.ReadToEndAsync());
             }
 
             p.WaitForExit();
