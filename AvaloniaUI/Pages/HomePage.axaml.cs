@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -10,6 +11,7 @@ using AvaloniaUI.Pages._HomePage.WallpaperProperties;
 using AvaloniaUI.Utils;
 using Logic;
 using Logic.Data;
+using Logic.Database;
 
 namespace AvaloniaUI.Pages;
 
@@ -133,13 +135,28 @@ public partial class HomePage : UserControl
         await entry!.Decode();
         lbl_SidePanel_Title.Content = entry.title;
 
-        DrawWallpaperProperties(entry.properties);
+        Dictionary<string, string?> savedSettings = (await ConfigManager.GetWallpaperSettings(id)).ToDictionary(x => x.settingKey, x => x.settingValue);
+
+        DrawDefaultProperties(ref savedSettings);
+        DrawWallpaperProperties(entry.properties, ref savedSettings);
 
         ImageBrush? brush = await ImageFetcher.GetIcon(id);
         img_SidePanel_Icon.Background = brush;
     }
 
-    private void DrawWallpaperProperties(WorkshopEntry.Properties[]? props)
+    private void DrawDefaultProperties(ref Dictionary<string, string?> options)
+    {
+        LoadValue(nameof(inp_SidePanel_OffsetX), ref inp_SidePanel_OffsetX, ref options, 0);
+        LoadValue(nameof(inp_SidePanel_OffsetY), ref inp_SidePanel_OffsetY, ref options, 0);
+
+        LoadValue(nameof(inp_SidePanel_Clamp), ref inp_SidePanel_Clamp, ref options, 0);
+        LoadValue(nameof(inp_SidePanel_Scaling), ref inp_SidePanel_Scaling, ref options, 0);
+
+        LoadValue(nameof(inp_SidePanel_Colours_Contrast), ref inp_SidePanel_Colours_Contrast, ref options, 1);
+        LoadValue(nameof(inp_SidePanel_Colours_Saturation), ref inp_SidePanel_Colours_Saturation, ref options, 1);
+    }
+
+    private void DrawWallpaperProperties(WorkshopEntry.Properties[]? props, ref Dictionary<string, string?> options)
     {
         cont_SidePanel_CustomProperties.Children.Clear();
 
@@ -187,8 +204,49 @@ public partial class HomePage : UserControl
         options.saturation = inp_SidePanel_Colours_Saturation.Value;
 
         options.screens = WallpaperSetter.WorkOutScreenOffsets((float)inp_SidePanel_OffsetX.Value, (float)inp_SidePanel_OffsetY.Value);
+
         await WallpaperSetter.SetWallpaper(entry!.path, options);
+        await SaveWallpaperSettings(currentlySelectedWallpaper.Value);
     }
+
+    private async Task SaveWallpaperSettings(long id)
+    {
+        dbo_WallpaperSettings[] settings = [
+            SaveValue(nameof(inp_SidePanel_OffsetX), inp_SidePanel_OffsetX, id),
+            SaveValue(nameof(inp_SidePanel_OffsetY), inp_SidePanel_OffsetY, id),
+
+            SaveValue(nameof(inp_SidePanel_Clamp), inp_SidePanel_Clamp, id),
+            SaveValue(nameof(inp_SidePanel_Scaling), inp_SidePanel_Scaling, id),
+
+            SaveValue(nameof(inp_SidePanel_Colours_Contrast), inp_SidePanel_Colours_Contrast, id),
+            SaveValue(nameof(inp_SidePanel_Colours_Saturation), inp_SidePanel_Colours_Saturation, id),
+        ];
+
+        await ConfigManager.SetWallpaperSavedSettings(id, settings);
+    }
+
+    private dbo_WallpaperSettings SaveValue(string settingName, Slider value, long id)
+        => new dbo_WallpaperSettings() { settingKey = settingName, settingValue = value.Value.ToString(), wallpaperId = id };
+
+    private void LoadValue(string settingName, ref Slider slider, ref Dictionary<string, string?> vals, double defaultVal)
+    {
+        if (vals.TryGetValue(settingName!, out string? res) && !string.IsNullOrEmpty(res))
+            slider.Value = double.Parse(res);
+        else
+            slider.Value = defaultVal;
+    }
+
+    private dbo_WallpaperSettings SaveValue(string settingName, ComboBox value, long id)
+        => new dbo_WallpaperSettings() { settingKey = settingName, settingValue = value.SelectedIndex.ToString(), wallpaperId = id };
+
+    private void LoadValue(string settingName, ref ComboBox slider, ref Dictionary<string, string?> vals, int defaultVal)
+    {
+        if (vals.TryGetValue(settingName!, out string? res) && !string.IsNullOrEmpty(res))
+            slider.SelectedIndex = int.Parse(res);
+        else
+            slider.SelectedIndex = defaultVal;
+    }
+
 
     private void LoadExtraEntries()
     {

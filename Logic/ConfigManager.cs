@@ -75,7 +75,7 @@ public static class ConfigManager
                     screenOrder = to
                 };
 
-                await Database_Manager.AddOrUpdate(newSetting, (x) => SQLFilter.Equal(nameof(newSetting.screenName), screenName), nameof(newSetting.screenOrder));
+                await Database_Manager.AddOrUpdate(newSetting, SQLFilter.Equal(nameof(newSetting.screenName), screenName), nameof(newSetting.screenOrder));
                 return;
             }
         }
@@ -100,7 +100,16 @@ public static class ConfigManager
             value = to
         };
 
-        await Database_Manager.AddOrUpdate(change, (x) => SQLFilter.Equal(nameof(dbo_Config.key), change.key), nameof(change.value));
+        await Database_Manager.AddOrUpdate(change, SQLFilter.Equal(nameof(dbo_Config.key), change.key), nameof(change.value));
+    }
+
+    public static async Task<dbo_WallpaperSettings[]> GetWallpaperSettings(long id)
+        => await Database_Manager.GetItems<dbo_WallpaperSettings>(SQLFilter.Equal(nameof(dbo_WallpaperSettings.wallpaperId), id));
+
+    public static async Task SetWallpaperSavedSettings(long id, dbo_WallpaperSettings[] options)
+    {
+        Func<dbo_WallpaperSettings, SQLFilter.InternalSQLFilter> matcher = (x) => SQLFilter.Equal(nameof(dbo_WallpaperSettings.wallpaperId), id).Equal(nameof(dbo_WallpaperSettings.settingKey), x.settingKey);
+        await Database_Manager.AddOrUpdate(options, matcher, nameof(dbo_WallpaperSettings.settingValue));
     }
 
 
