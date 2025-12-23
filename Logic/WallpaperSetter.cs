@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.IsolatedStorage;
 using CSharpSqliteORM;
+using Logic.Database;
 using Logic.db;
 
 namespace Logic;
@@ -149,6 +150,10 @@ public static class WallpaperSetter
 
         public double saturation;
         public double contrast;
+        public string? borderColour;
+
+        public string[]? customProperties;
+
 
         public struct ScreenSettings
         {
@@ -198,6 +203,21 @@ public static class WallpaperSetter
 
             info.ArgumentList.Add("--saturation");
             info.ArgumentList.Add(saturation.ToString());
+
+            if (!string.IsNullOrEmpty(borderColour))
+            {
+                info.ArgumentList.Add("--border-colour");
+                info.ArgumentList.Add(borderColour);
+            }
+
+            if (customProperties != null)
+            {
+                foreach (string arg in customProperties)
+                {
+                    info.ArgumentList.Add("--set-property");
+                    info.ArgumentList.Add(arg);
+                }
+            }
 
             info.ArgumentList.Add("--bg");
             return info;

@@ -89,33 +89,80 @@ public class WorkshopEntry
         public PropertyType? type;
         public string? value;
 
+        public (string label, string value)[]? comboOptions;
+
+        public double? max;
+        public double? min;
+        public double? precision;
+        public double? step;
+
         public Properties(JsonProperty parent)
         {
             propertyName = parent.Name;
+            order = parent.Value.GetProperty("order").GetInt32();
+            text = parent.Value.GetProperty("text").GetString();
 
-            try
+            if (parent.Value.TryGetProperty("type", out JsonElement el))
             {
-                order = parent.Value.GetProperty("order").GetInt32();
-                text = parent.Value.GetProperty("text").GetString();
-                value = parent.Value.GetProperty("value").GetString();
+                string? typeName = el.GetString();
 
-                type = DeserializeType(parent.Value.GetProperty("type").GetString());
+                switch (typeName)
+                {
+                    case "slider":
+                        type = PropertyType.slider;
+                        value = parent.Value.GetProperty("value").GetDouble().ToString();
+
+                        max = parent.Value.GetProperty("max").GetDouble();
+                        min = parent.Value.GetProperty("min").GetDouble();
+                        precision = parent.Value.GetProperty("precision").GetDouble();
+                        step = parent.Value.GetProperty("step").GetDouble();
+                        break;
+
+                    case "color":
+                        type = PropertyType.colour;
+                        break;
+
+                    case "bool":
+                        type = PropertyType.boolean;
+                        value = parent.Value.GetProperty("value").GetBoolean() == true ? "1" : "0";
+                        return;
+
+                    case "combo":
+                        type = PropertyType.combo;
+                        comboOptions = parent.Value.GetProperty("options").EnumerateArray().Select(o => (o.GetProperty("label").ToString(), o.GetProperty("value").ToString())).ToArray();
+                        break;
+
+                    case "textinput":
+                        type = PropertyType.text_input;
+                        break;
+
+                    case "scenetexture":
+                        type = PropertyType.scene_texture;
+                        break;
+
+                    default:
+                        type = PropertyType.INVALID;
+                        Console.WriteLine($"Couldnt match type - '{typeName}'");
+                        return;
+                }
+
+                try
+                {
+                    if (parent.Value.TryGetProperty("value", out el))
+                    {
+                        value = el.GetString();
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine($"Unhandled param type for - {type}");
+                }
             }
-            catch { }
-        }
-
-        private PropertyType DeserializeType(string? type)
-        {
-            switch (type)
+            else
             {
-                case "color": return PropertyType.colour;
-                case "bool": return PropertyType.boolean;
-                case "combo": return PropertyType.combo;
-                case "textinput": return PropertyType.text_input;
-                case "scenetexture": return PropertyType.scene_texture;
-
-                default: return PropertyType.INVALID;
+                type = PropertyType.label;
             }
+
         }
     }
 
@@ -127,5 +174,7 @@ public class WorkshopEntry
         combo,
         text_input,
         scene_texture,
+        label,
+        slider
     }
 }

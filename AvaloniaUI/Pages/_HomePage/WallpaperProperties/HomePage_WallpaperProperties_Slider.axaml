@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" x:Class="AvaloniaUI.Pages._HomePage.WallpaperProperties.HomePage_WallpaperProperties_Slider">
+  <Grid ColumnDefinitions="100, *, 50" ColumnSpacing="15" Height="50">
+    <Label x:Name="lbl" Content="Offset X" VerticalAlignment="Center" FontSize="12"/>
+    <Slider x:Name="inp" Grid.Column="1"/>
+    <TextBox x:Name="amount" Grid.Column="2" Height="20"/>
+  </Grid>
+</UserControl>

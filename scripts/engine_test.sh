@@ -1,1 +1,1 @@
-./Engine/build/output/linux-wallpaperengine --screen-root HDMI-A-1 --bg 3216283494 --saturation 1 --contrast 2
+./Engine/build/output/linux-wallpaperengine --screen-root HDMI-A-1 --bg 3216283494 --saturation 1 --contrast 2 --clamp border --border-colour 1,0,1

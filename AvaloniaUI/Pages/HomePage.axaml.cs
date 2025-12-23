@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -24,6 +26,9 @@ public partial class HomePage : UserControl
 
     private int loadedPages = 0;
     private string? cachedNameFilter;
+
+    private readonly IWallpaperProperty[] defaultProps;
+    private List<IWallpaperProperty> customProps;
 
     private Dictionary<long, HomePage_Wallpaper> cachedWallpaperUI = new Dictionary<long, HomePage_Wallpaper>();
 
@@ -53,6 +58,20 @@ public partial class HomePage : UserControl
         InitializeComponent();
         SetupBasicOptions();
 
+        defaultProps = [
+            prop_Clamp.Init(nameof(prop_Clamp), "Clamp", Enum.GetNames(typeof(WallpaperSetter.ClampOptions)), 0),
+            prop_Scaling.Init(nameof(prop_Scaling), "Scaling", [DEFAULT_SCALING_NAME, .. Enum.GetNames(typeof(WallpaperSetter.ScalingOptions))], 0),
+
+            prop_OffsetX.Init(nameof(prop_OffsetX), "Offset X", -1, 1, 0),
+            prop_OffsetY.Init(nameof(prop_OffsetY), "Offset Y", -1, 1, 0),
+
+            prop_BGColour.Init(nameof(prop_BGColour), "Border Colour", Color.FromRgb(0, 0, 0)),
+            prop_Contrast.Init(nameof(prop_Contrast), "Contrast", -4, 5, 1),
+            prop_Saturation.Init(nameof(prop_Saturation), "Saturation", -4, 5, 1),
+        ];
+
+        customProps = new List<IWallpaperProperty>();
+
         inp_NameSearch.KeyUp += (_, __) => UpdateFilter();
 
         if (!Design.IsDesignMode)
@@ -63,29 +82,8 @@ public partial class HomePage : UserControl
 
     private void SetupBasicOptions()
     {
-        string[] options = [DEFAULT_SCALING_NAME, .. System.Enum.GetNames(typeof(WallpaperSetter.ScalingOptions))];
-        inp_SidePanel_Scaling.SelectedIndex = 0;
-        inp_SidePanel_Scaling.ItemsSource = options;
-
-        options = System.Enum.GetNames(typeof(WallpaperSetter.ClampOptions));
-        inp_SidePanel_Clamp.SelectedIndex = 0;
-        inp_SidePanel_Clamp.ItemsSource = options;
-
         btn_SidePanel_Set.RegisterClick(SetWallpaper);
-
-        inp_SidePanel_OffsetY.Minimum = -1;
-        inp_SidePanel_OffsetY.Maximum = 1;
-
-        inp_SidePanel_OffsetX.Minimum = -1;
-        inp_SidePanel_OffsetX.Maximum = 1;
-
-        inp_SidePanel_Colours_Contrast.Maximum = 5;
-        inp_SidePanel_Colours_Contrast.Value = 1;
-        inp_SidePanel_Colours_Contrast.Minimum = -4;
-
-        inp_SidePanel_Colours_Saturation.Maximum = 5;
-        inp_SidePanel_Colours_Saturation.Value = 1;
-        inp_SidePanel_Colours_Saturation.Minimum = -4;
+        btn_SidePanel_Browse.RegisterClick(BrowseToFolder);
 
         btn_LoadMore.RegisterClick(LoadExtraEntries);
     }
@@ -126,6 +124,8 @@ public partial class HomePage : UserControl
     {
         currentlySelectedWallpaper = id;
 
+        scroll_SidePanel.ScrollToHome();
+        cont_SidePanel_Tags.Children.Clear();
         img_SidePanel_Icon.Background = null;
         lbl_SidePanel_Title.Content = "";
 
@@ -133,31 +133,55 @@ public partial class HomePage : UserControl
             return;
 
         await entry!.Decode();
+
         lbl_SidePanel_Title.Content = entry.title;
+        DrawTags(entry.tags);
 
         Dictionary<string, string?> savedSettings = (await ConfigManager.GetWallpaperSettings(id)).ToDictionary(x => x.settingKey, x => x.settingValue);
 
         DrawDefaultProperties(ref savedSettings);
-        DrawWallpaperProperties(entry.properties, ref savedSettings);
+        DrawWallpaperProperties(entry?.properties?.OrderBy(x => x.order), ref savedSettings);
 
         ImageBrush? brush = await ImageFetcher.GetIcon(id);
         img_SidePanel_Icon.Background = brush;
     }
 
-    private void DrawDefaultProperties(ref Dictionary<string, string?> options)
+    private void DrawTags(string[]? tags)
     {
-        LoadValue(nameof(inp_SidePanel_OffsetX), ref inp_SidePanel_OffsetX, ref options, 0);
-        LoadValue(nameof(inp_SidePanel_OffsetY), ref inp_SidePanel_OffsetY, ref options, 0);
+        if (tags == null)
+            return;
 
-        LoadValue(nameof(inp_SidePanel_Clamp), ref inp_SidePanel_Clamp, ref options, 0);
-        LoadValue(nameof(inp_SidePanel_Scaling), ref inp_SidePanel_Scaling, ref options, 0);
+        foreach (string tag in tags)
+        {
+            HomePage_Tag tagUI = new HomePage_Tag();
+            tagUI.tagName.Content = tag;
 
-        LoadValue(nameof(inp_SidePanel_Colours_Contrast), ref inp_SidePanel_Colours_Contrast, ref options, 1);
-        LoadValue(nameof(inp_SidePanel_Colours_Saturation), ref inp_SidePanel_Colours_Saturation, ref options, 1);
+            cont_SidePanel_Tags.Children.Add(tagUI);
+        }
     }
 
-    private void DrawWallpaperProperties(WorkshopEntry.Properties[]? props, ref Dictionary<string, string?> options)
+    private void DrawDefaultProperties(ref Dictionary<string, string?> options)
     {
+        prop_Clamp.Load(ref options);
+        prop_Scaling.Load(ref options);
+
+        prop_OffsetX.Load(ref options);
+        prop_OffsetY.Load(ref options);
+
+        prop_Contrast.Load(ref options);
+        prop_Saturation.Load(ref options);
+    }
+
+    private void DrawWallpaperProperties(IEnumerable<WorkshopEntry.Properties>? props, ref Dictionary<string, string?> options)
+    {
+        customProps.Clear();
+
+        if (!(props?.Count() > 0))
+        {
+            cont_SidePanel_CustomPropertiesGroup.IsVisible = false;
+            return;
+        }
+
         cont_SidePanel_CustomProperties.Children.Clear();
 
         if (props == null)
@@ -167,12 +191,26 @@ public partial class HomePage : UserControl
 
         foreach (WorkshopEntry.Properties prop in props)
         {
+            if (prop.type == WorkshopEntry.PropertyType.label)
+            {
+                TextBlock l = new TextBlock();
+                l.TextWrapping = TextWrapping.Wrap;
+                l.Text = Regex.Replace(prop.text?.Replace("<br>", "\n").Replace("<br/>", "\n") ?? string.Empty, "<.*?>", string.Empty);
+
+                cont_SidePanel_CustomProperties.Children.Add(l);
+                continue;
+            }
+
             ui = GetWallpaperPropertyUI(prop.type ?? WorkshopEntry.PropertyType.INVALID);
 
             if (ui == null)
                 continue;
 
-            ui.Draw(prop);
+
+            ui.Init(prop);
+            ui.Load(ref options);
+
+            customProps.Add(ui);
             cont_SidePanel_CustomProperties.Children.Add((ui as UserControl)!);
         }
     }
@@ -182,13 +220,23 @@ public partial class HomePage : UserControl
         switch (type)
         {
             case WorkshopEntry.PropertyType.colour: return new HomePage_WallpaperProperties_Colour();
-                //case WorkshopEntry.PropertyType.boolean: return new HomePage_WallpaperProperties_Bool();
-                //case WorkshopEntry.PropertyType.combo: return new HomePage_WallpaperProperties_Combo();
-                //case WorkshopEntry.PropertyType.text_input: return new HomePage_WallpaperProperties_TextInput();
-                //case WorkshopEntry.PropertyType.scene_texture: return new HomePage_WallpaperProperties_SceneTexture();
+            case WorkshopEntry.PropertyType.boolean: return new HomePage_WallpaperProperties_Bool();
+            case WorkshopEntry.PropertyType.combo: return new HomePage_WallpaperProperties_Combo();
+            case WorkshopEntry.PropertyType.text_input: return new HomePage_WallpaperProperties_TextInput();
+            case WorkshopEntry.PropertyType.slider: return new HomePage_WallpaperProperties_Slider();
+
+                // case WorkshopEntry.PropertyType.scene_texture: return new HomePage_WallpaperProperties_SceneTexture(); // i dont even know what this is
         }
 
         return null;
+    }
+
+    private void BrowseToFolder()
+    {
+        if (currentlySelectedWallpaper == null || !WorkshopManager.TryGetWallpaperEntry(currentlySelectedWallpaper.Value, out WorkshopEntry? entry))
+            return;
+
+        new Process() { StartInfo = new ProcessStartInfo { FileName = "xdg-open", Arguments = entry!.path, UseShellExecute = false } }.Start();
     }
 
     private async Task SetWallpaper()
@@ -197,13 +245,15 @@ public partial class HomePage : UserControl
             return;
 
         WallpaperSetter.WallpaperOptions options = new WallpaperSetter.WallpaperOptions();
-        options.scalingOption = inp_SidePanel_Scaling.SelectedIndex - 1 >= 0 ? (WallpaperSetter.ScalingOptions)(inp_SidePanel_Scaling.SelectedIndex - 1) : null;
-        options.clampOptions = (WallpaperSetter.ClampOptions)inp_SidePanel_Clamp.SelectedIndex;
+        options.scalingOption = prop_Scaling.SelectedIndex - 1 >= 0 ? (WallpaperSetter.ScalingOptions)(prop_Scaling.SelectedIndex - 1) : null;
+        options.clampOptions = (WallpaperSetter.ClampOptions)prop_Clamp.SelectedIndex;
 
-        options.contrast = inp_SidePanel_Colours_Contrast.Value;
-        options.saturation = inp_SidePanel_Colours_Saturation.Value;
+        options.contrast = prop_Contrast.Value;
+        options.saturation = prop_Saturation.Value;
+        options.borderColour = prop_BGColour.StringColour;
 
-        options.screens = WallpaperSetter.WorkOutScreenOffsets((float)inp_SidePanel_OffsetX.Value, (float)inp_SidePanel_OffsetY.Value);
+        options.screens = WallpaperSetter.WorkOutScreenOffsets((float)prop_OffsetX.Value, (float)prop_OffsetY.Value);
+        options.customProperties = customProps?.Select(x => x.CreateArgument()).Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToArray();
 
         await WallpaperSetter.SetWallpaper(entry!.path, options);
         await SaveWallpaperSettings(currentlySelectedWallpaper.Value);
@@ -211,42 +261,11 @@ public partial class HomePage : UserControl
 
     private async Task SaveWallpaperSettings(long id)
     {
-        dbo_WallpaperSettings[] settings = [
-            SaveValue(nameof(inp_SidePanel_OffsetX), inp_SidePanel_OffsetX, id),
-            SaveValue(nameof(inp_SidePanel_OffsetY), inp_SidePanel_OffsetY, id),
+        List<dbo_WallpaperSettings> props = defaultProps!.Select(x => x.Save(id)).Where(x => x != null).ToList()!;
+        props.AddRange(customProps.Select(x => x.Save(id)).Where(x => x != null)!);
 
-            SaveValue(nameof(inp_SidePanel_Clamp), inp_SidePanel_Clamp, id),
-            SaveValue(nameof(inp_SidePanel_Scaling), inp_SidePanel_Scaling, id),
-
-            SaveValue(nameof(inp_SidePanel_Colours_Contrast), inp_SidePanel_Colours_Contrast, id),
-            SaveValue(nameof(inp_SidePanel_Colours_Saturation), inp_SidePanel_Colours_Saturation, id),
-        ];
-
-        await ConfigManager.SetWallpaperSavedSettings(id, settings);
+        await ConfigManager.SetWallpaperSavedSettings(id, props.ToArray());
     }
-
-    private dbo_WallpaperSettings SaveValue(string settingName, Slider value, long id)
-        => new dbo_WallpaperSettings() { settingKey = settingName, settingValue = value.Value.ToString(), wallpaperId = id };
-
-    private void LoadValue(string settingName, ref Slider slider, ref Dictionary<string, string?> vals, double defaultVal)
-    {
-        if (vals.TryGetValue(settingName!, out string? res) && !string.IsNullOrEmpty(res))
-            slider.Value = double.Parse(res);
-        else
-            slider.Value = defaultVal;
-    }
-
-    private dbo_WallpaperSettings SaveValue(string settingName, ComboBox value, long id)
-        => new dbo_WallpaperSettings() { settingKey = settingName, settingValue = value.SelectedIndex.ToString(), wallpaperId = id };
-
-    private void LoadValue(string settingName, ref ComboBox slider, ref Dictionary<string, string?> vals, int defaultVal)
-    {
-        if (vals.TryGetValue(settingName!, out string? res) && !string.IsNullOrEmpty(res))
-            slider.SelectedIndex = int.Parse(res);
-        else
-            slider.SelectedIndex = defaultVal;
-    }
-
 
     private void LoadExtraEntries()
     {

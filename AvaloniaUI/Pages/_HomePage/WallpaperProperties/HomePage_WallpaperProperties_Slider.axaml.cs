@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -8,57 +7,53 @@ using Logic.Database;
 
 namespace AvaloniaUI.Pages._HomePage.WallpaperProperties;
 
-public partial class HomePage_WallpaperProperties_Combo : UserControl, IWallpaperProperty
+public partial class HomePage_WallpaperProperties_Slider : UserControl, IWallpaperProperty
 {
     private string? key;
-    private string[]? indexLookup;
-    private int? defaultValue;
 
-    public int SelectedIndex => inp.SelectedIndex;
-    public string SelectedValue => indexLookup![SelectedIndex];
-
+    private double? defaultValue;
     private bool isDirty = false;
 
-    public HomePage_WallpaperProperties_Combo()
+    public double Value => inp.Value;
+
+    public HomePage_WallpaperProperties_Slider()
     {
         InitializeComponent();
     }
 
     public IWallpaperProperty Init(WorkshopEntry.Properties prop)
     {
-        indexLookup = prop.comboOptions!.Select(x => x.value).ToArray();
-        return Init(prop.propertyName!, prop.text!, prop.comboOptions!.Select(x => x.label).ToArray(), int.Parse(prop.value!));
+        return Init(prop.propertyName!, prop.text!, (float)prop.min!, (float)prop.max!, float.Parse(prop.value!));
     }
 
-    public IWallpaperProperty Init(string name, string label, string[] data, int defaultVal)
+    public IWallpaperProperty Init(string name, string label, float min, float max, float val)
     {
         key = name;
         lbl.Content = label;
 
-        inp.ItemsSource = data;
-        inp.SelectedIndex = defaultVal;
+        inp.ValueChanged += (_, __) => OnChangeValue();
 
-        defaultValue = defaultVal;
+        defaultValue = val;
+        inp.Minimum = min;
+        inp.Maximum = max;
+        inp.Value = val;
 
         isDirty = false;
-        inp.SelectionChanged += (_, __) => isDirty = true;
-
         return this;
     }
-
 
     public void Load(ref Dictionary<string, string?> options)
     {
         if (!options.TryGetValue(key!, out string? res) || string.IsNullOrEmpty(res))
         {
-            inp.SelectedIndex = defaultValue ?? 0;
+            inp.Value = defaultValue ?? 0;
             isDirty = false;
 
             return;
         }
 
         isDirty = true;
-        inp.SelectedIndex = int.Parse(res);
+        inp.Value = double.Parse(res);
     }
 
     public dbo_WallpaperSettings? Save(long id)
@@ -70,8 +65,14 @@ public partial class HomePage_WallpaperProperties_Combo : UserControl, IWallpape
         {
             wallpaperId = id,
             settingKey = key!,
-            settingValue = inp.SelectedIndex.ToString()
+            settingValue = inp.Value.ToString(),
         };
+    }
+
+    private void OnChangeValue()
+    {
+        isDirty = true;
+        amount.Text = inp.Value.ToString();
     }
 
     public string? CreateArgument()
@@ -79,6 +80,6 @@ public partial class HomePage_WallpaperProperties_Combo : UserControl, IWallpape
         if (!isDirty)
             return null;
 
-        return $"{key!}={SelectedValue}";
+        return $"{key!}={inp.Value}";
     }
 }
