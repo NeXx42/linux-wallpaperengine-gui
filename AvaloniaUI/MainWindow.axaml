@@ -2,20 +2,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" x:Class="AvaloniaUI.MainWindow" Title="AvaloniaUI"
+    xmlns:Common="clr-namespace:AvaloniaUI.Common"
     xmlns:Pages="clr-namespace:AvaloniaUI.Pages">
     <Grid>
         <Grid x:Name="Pages">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="40"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <Grid Grid.Column="0" Background="{DynamicResource bg_Panel}">
-                <Button Content="[]" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="5" x:Name="btn_Settings">
-                </Button>
+            <Grid Grid.Row="0" Background="{DynamicResource bg_Panel}">
+                <StackPanel HorizontalAlignment="Left" Margin="5" Spacing="10" Orientation="Horizontal">
+                    <Common:Common_Button Label="Library" x:Name="btn_Library"/>
+                    <Common:Common_Button Label="Workshop" x:Name="btn_Workshop"/>
+                </StackPanel>
+
+                <Common:Common_Button Label="Settings" HorizontalAlignment="Right" Margin="5" x:Name="btn_Settings" />
             </Grid>
 
-            <Pages:HomePage Grid.Column="1" x:Name="Page_HomePage"/>
+
+            <Pages:HomePage Grid.Row="1" x:Name="Page_HomePage" IsVisible="False"/>
+            <Pages:SteamWorkshopPage Grid.Row="1" x:Name="Page_WorkshopPage" IsVisible="False"/>
         </Grid>
         <Grid x:Name="cont_SettingsContainer" Background="#a0000000">
             <Pages:SettingsPage x:Name="Page_Settings" Margin="100" />

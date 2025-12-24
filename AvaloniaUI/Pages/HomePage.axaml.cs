@@ -24,6 +24,7 @@ public partial class HomePage : UserControl
     public const int ENTRY_SIZE = 150;
     public const int ENTRIES_PER_PAGE = 50;
 
+    private bool isSetup = false;
     private int loadedPages = 0;
     private string? cachedNameFilter;
 
@@ -71,13 +72,21 @@ public partial class HomePage : UserControl
         ];
 
         customProps = new List<IWallpaperProperty>();
-
         inp_NameSearch.KeyUp += (_, __) => UpdateFilter();
 
-        if (!Design.IsDesignMode)
-        {
-            DrawWallpapers(false);
-        }
+    }
+
+    public async void LoadPage()
+    {
+        if (isSetup)
+            return;
+
+        isSetup = true;
+
+        currentlySelectedWallpaper = null;
+
+        await MainWindow.AsyncLoad(WorkshopManager.RefreshLocalEntries);
+        DrawWallpapers(false);
     }
 
     private void SetupBasicOptions()
@@ -122,6 +131,12 @@ public partial class HomePage : UserControl
 
     public async void SelectWallpaper(long id)
     {
+        if (id == currentlySelectedWallpaper)
+        {
+            currentlySelectedWallpaper = null;
+            return;
+        }
+
         currentlySelectedWallpaper = id;
 
         scroll_SidePanel.ScrollToHome();
@@ -142,8 +157,7 @@ public partial class HomePage : UserControl
         DrawDefaultProperties(ref savedSettings);
         DrawWallpaperProperties(entry?.properties?.OrderBy(x => x.order), ref savedSettings);
 
-        ImageBrush? brush = await ImageFetcher.GetIcon(id);
-        img_SidePanel_Icon.Background = brush;
+        img_SidePanel_Icon.Background = await ImageFetcher.GetIcon(entry!);
     }
 
     private void DrawTags(string[]? tags)

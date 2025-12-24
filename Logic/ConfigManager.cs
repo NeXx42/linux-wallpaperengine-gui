@@ -6,12 +6,17 @@ namespace Logic;
 
 public static class ConfigManager
 {
+    public const string APPLICATION_NAME = "LinuxWallpaperEngineGUI";
+    public const int WALLPAPER_ENGINE_ID = 431960;
+
     public enum ConfigKeys
     {
         ExecutableLocation,
         WorkshopLocations,
 
-        SaveStartupScriptLocation
+        SaveStartupScriptLocation,
+
+        SteamWebAPIKey,
     }
 
     public static string[]? localWorkshopLocations { private set; get; }
@@ -20,7 +25,7 @@ public static class ConfigManager
 
     public static async Task Init()
     {
-        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LinuxWallpaperEngineGUI.db");
+        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"{APPLICATION_NAME}.db");
         await Database_Manager.Init(dbPath);
 
         await LoadWorkshopLocations();
@@ -33,7 +38,7 @@ public static class ConfigManager
 
         if (entries.Length == 0)
         {
-            localWorkshopLocations = [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/share/Steam/steamapps/workshop/content/431960")];
+            localWorkshopLocations = [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), $".local/share/Steam/steamapps/workshop/content/{WALLPAPER_ENGINE_ID}")];
         }
         else
         {

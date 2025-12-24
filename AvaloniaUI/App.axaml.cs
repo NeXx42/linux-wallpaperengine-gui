@@ -20,8 +20,7 @@ public partial class App : Application
         if (!Design.IsDesignMode)
         {
             await ConfigManager.Init();
-            await WorkshopManager.Init(ImageFetcher.HandleBrushCreation);
-            await WorkshopManager.RefreshLocalEntries();
+            await ImageFetchingManager.Init(ImageFetcher.HandleBrushCreation, ImageFetcher.HandleWebBrushCreation);
         }
 
     }

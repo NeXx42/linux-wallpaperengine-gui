@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200" x:Class="AvaloniaUI.Pages.SteamWorkshop.SteamWorkshop_Wallpaper">
+  <Border Background="Black" CornerRadius="5" ClipToBounds="True" x:Name="border">
+    <Grid>
+      <Border x:Name="img_Icon"/>
+
+      <Border VerticalAlignment="Bottom" Height="40" Background="#a9000000">
+        <Label x:Name="lbl_Title" Content="Test" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="12"/>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

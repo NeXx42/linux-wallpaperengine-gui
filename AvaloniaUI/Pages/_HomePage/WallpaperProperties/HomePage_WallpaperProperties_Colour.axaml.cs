@@ -30,8 +30,25 @@ public partial class HomePage_WallpaperProperties_Colour : UserControl, IWallpap
 
     public IWallpaperProperty Init(WorkshopEntry.Properties prop)
     {
-        byte[] comps = prop.value!.Split(" ").Select(x => (byte)Math.Round(double.Parse(x) * 255)).ToArray();
-        return Init(prop.propertyName!, prop.text!, Color.FromRgb(comps[0], comps[1], comps[2]));
+        Color? parsedColour = null;
+
+        if (prop.value!.StartsWith("#"))
+        {
+            if (Color.TryParse(prop.value, out Color _c))
+                parsedColour = _c;
+        }
+        else
+        {
+            string[] channels = prop.value!.Split(" ");
+
+            if (channels.Length == 3)
+            {
+                byte[] comps = channels.Select(x => (byte)Math.Round(double.Parse(x) * 255)).ToArray();
+                parsedColour = Color.FromRgb(comps[0], comps[1], comps[2]);
+            }
+        }
+
+        return Init(prop.propertyName!, prop.text!, parsedColour ?? Color.FromRgb(0, 0, 0));
     }
 
     public IWallpaperProperty Init(string settingName, string title, Color defaultColour)

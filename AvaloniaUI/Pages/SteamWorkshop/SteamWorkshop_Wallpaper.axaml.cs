@@ -4,36 +4,41 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using AvaloniaUI.Utils;
+using Logic;
 using Logic.Data;
 
-namespace AvaloniaUI.Pages._HomePage;
+namespace AvaloniaUI.Pages.SteamWorkshop;
 
-public partial class HomePage_Wallpaper : UserControl
+public partial class SteamWorkshop_Wallpaper : UserControl
 {
     private static Thickness? unselectedThickness;
     private static Thickness? selectedThickness;
     private static ImmutableSolidColorBrush? selectedBrush;
 
-    private long? representingId;
-    private HomePage? master;
+    private int index;
+    private SteamWorkshopPage? master;
 
-    public HomePage_Wallpaper()
+    public SteamWorkshop_Wallpaper()
     {
         InitializeComponent();
 
         img_Icon.PointerPressed += (_, __) => HandleSelection();
     }
 
-    public async void StartDraw(WorkshopEntry entry, HomePage master)
+    public void Setup(int index)
+    {
+        this.index = index;
+    }
+
+    public async void StartDraw(SteamWorkshopEntry entry, SteamWorkshopPage master)
     {
         this.master = master;
-        this.representingId = entry.id;
 
-        lbl_Title.Content = "loading";
+        lbl_Title.Content = entry.name;
         img_Icon.Background = null;
 
-        await entry.DecodeBasic();
-        lbl_Title.Content = entry.title;
+        //await entry.DecodeBasic();
+        //lbl_Title.Content = entry.title;
 
         ImageBrush? brush = await ImageFetcher.GetIcon(entry);
         img_Icon.Background = brush;
@@ -41,10 +46,7 @@ public partial class HomePage_Wallpaper : UserControl
 
     private void HandleSelection()
     {
-        if (master == null || !representingId.HasValue)
-            return;
-
-        master.SelectWallpaper(representingId.Value);
+        master!.ViewWallpaper(index);
     }
 
     public void ToggleSelection(bool to)

@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" x:Class="AvaloniaUI.Pages.SteamWorkshopPage"
+  xmlns:Common="clr-namespace:AvaloniaUI.Common">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+
+    <Grid Grid.Column="0" x:Name="grid_Content" RowDefinitions="Auto, *, 100">
+      <StackPanel Margin="20" Spacing="5">
+        <TextBox VerticalAlignment="Top" x:Name="inp_NameSearch"/>
+        <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="False">
+          <TextBox Width="200"/>
+          <Common:Common_Button Label="Tag1"/>
+          <Common:Common_Button Label="Tag2"/>
+          <Common:Common_Button Label="Tag3"/>
+        </StackPanel>
+      </StackPanel>
+
+      <WrapPanel x:Name="grid_Content_Container" Grid.Row="1" Margin="20" HorizontalAlignment="Center" ItemSpacing="15" LineSpacing="15"/>
+      <Label x:Name="lbl_Content_NetworkResponse" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Common:Common_Button x:Name="btn_Prev" Label="Prev"/>
+        <Label Content="10" x:Name="lbl_PageNumber"/>
+        <Common:Common_Button x:Name="btn_Next" Label="Next"/>
+      </StackPanel>
+    </Grid>
+
+
+    <!-- SIDE BAR -->
+
+    <Grid x:Name="grid_SidePanel" Background="{DynamicResource bg_Panel}" Grid.Column="1" Width="500" IsVisible="True">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="80"/>
+      </Grid.RowDefinitions>
+
+      <ScrollViewer x:Name="scroll_SidePanel">
+        <StackPanel >
+          <Border Background="Black" Height="500" CornerRadius="5" BoxShadow="0 0 5 0 Black">
+            <Border x:Name="img_SidePanel_Icon" Margin="2" CornerRadius="5" ClipToBounds="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+          </Border>
+
+          <StackPanel Spacing="20" Margin="15">
+            <Label x:Name="lbl_SidePanel_Title" Content="NAME" HorizontalAlignment="Center" FontSize="20"/>
+
+            <WrapPanel HorizontalAlignment="Center" ItemSpacing="5" LineSpacing="5" x:Name="cont_SidePanel_Tags">
+
+            </WrapPanel>
+
+          </StackPanel>
+        </StackPanel>
+
+      </ScrollViewer>
+
+
+      <Border Background="{DynamicResource bg_Panel_Light}" Grid.Row="1" VerticalAlignment="Bottom" Height="80" Margin="10" CornerRadius="5">
+        <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+          <Common:Common_Button x:Name="btn_SidePanel_Download" Label="Set Wallpaper" Width="200" Height="40"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+  </Grid>
+</UserControl>

@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Logic.Data;
 
-public class WorkshopEntry
+public class WorkshopEntry : IWorkshopEntry
 {
     public long id;
     public string path;
@@ -13,6 +13,9 @@ public class WorkshopEntry
     public Properties[]? properties;
 
     private int decodeStatus;
+
+    public long getId => id;
+    public string? getIconPath => Path.Combine(path, iconPath);
 
     public WorkshopEntry(long id, string path)
     {
