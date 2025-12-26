@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" x:Class="AvaloniaUI.Pages.Common.Common_ItemViewer"
+  xmlns:Common="clr-namespace:AvaloniaUI.Common"
+  xmlns:Elements="clr-namespace:AvaloniaUI.Pages.Common">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+
+    <Grid Grid.Column="0" x:Name="grid_Content" RowDefinitions="Auto, *">
+      <Grid Margin="10">
+        <Border Background="{DynamicResource bg_Panel}" CornerRadius="5" Height="44">
+          <Grid Margin="10">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="15">
+              <Label Content="Search" VerticalAlignment="Center" Foreground="#fff"/>
+              <TextBox x:Name="inp_NameSearch" Height="30" MinHeight="0" VerticalAlignment="Center" Width="250" HorizontalAlignment="Left"/>
+            </StackPanel>
+
+            <Common:Common_Button Label="Filters" HorizontalAlignment="Right" Width="150"/>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <ScrollViewer Grid.Row="1">
+        <Border x:Name="cont_Formatter">
+        </Border>
+
+      </ScrollViewer>
+    </Grid>
+
+
+    <!-- SIDE BAR -->
+
+    <Grid x:Name="grid_SidePanel" Background="{DynamicResource bg_Panel}" Grid.Column="1" Width="350" IsVisible="True">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="10"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <ScrollViewer x:Name="scroll_SidePanel">
+        <StackPanel x:Name="cont_SidePanel">
+          <Border Background="Black" Height="350" CornerRadius="5" BoxShadow="0 0 5 0 Black">
+            <Border x:Name="img_SidePanel_Icon" Margin="2" CornerRadius="5" ClipToBounds="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+          </Border>
+          <Label x:Name="lbl_SidePanel_Title" Content="NAME" HorizontalAlignment="Center" FontSize="18" Margin="0, 5, 0, 0"/>
+          <WrapPanel HorizontalAlignment="Center" ItemSpacing="5" LineSpacing="5" x:Name="cont_SidePanel_Tags">
+            <Elements:Common_Tag/>
+            <Elements:Common_Tag/>
+            <Elements:Common_Tag/>
+          </WrapPanel>
+
+
+        </StackPanel>
+
+      </ScrollViewer>
+
+
+      <Border Background="{DynamicResource bg_Panel_Light}" Grid.Row="2" VerticalAlignment="Bottom" Height="50" CornerRadius="5">
+        <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center" x:Name="cont_sidePanel_Actions">
+
+        </StackPanel>
+      </Border>
+    </Grid>
+
+  </Grid>
+</UserControl>

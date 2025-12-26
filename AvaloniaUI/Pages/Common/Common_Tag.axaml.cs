@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace AvaloniaUI.Pages._HomePage;
+namespace AvaloniaUI.Pages.Common;
 
-public partial class HomePage_Tag : UserControl
+public partial class Common_Tag : UserControl
 {
-    public HomePage_Tag()
+    public Common_Tag()
     {
         InitializeComponent();
     }

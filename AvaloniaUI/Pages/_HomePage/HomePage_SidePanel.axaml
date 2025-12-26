@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" x:Class="AvaloniaUI.Pages._HomePage.HomePage_SidePanel"
+  xmlns:Prop="clr-namespace:AvaloniaUI.Pages._HomePage.WallpaperProperties">
+
+  <StackPanel Spacing="20" Margin="15">
+    <StackPanel Spacing="5">
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <Label Content="Default Settings" FontSize="14" HorizontalAlignment="Center" Margin="5"/>
+      </Border>
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <StackPanel Margin="10" Spacing="5">
+          <Prop:HomePage_WallpaperProperties_Combo x:Name="prop_Scaling"/>
+          <Prop:HomePage_WallpaperProperties_Combo x:Name="prop_Clamp"/>
+          <Prop:HomePage_WallpaperProperties_Slider x:Name="prop_OffsetX"/>
+          <Prop:HomePage_WallpaperProperties_Slider x:Name="prop_OffsetY"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+
+    <StackPanel Spacing="5">
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <Label Content="Colour Settings" FontSize="14" HorizontalAlignment="Center" Margin="5"/>
+      </Border>
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <StackPanel Margin="10" Spacing="5">
+          <Prop:HomePage_WallpaperProperties_Colour x:Name="prop_BGColour"/>
+          <Prop:HomePage_WallpaperProperties_Slider x:Name="prop_Contrast"/>
+          <Prop:HomePage_WallpaperProperties_Slider x:Name="prop_Saturation"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+
+    <StackPanel x:Name="cont_SidePanel_CustomPropertiesGroup" Spacing="5">
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <Label Content="Custom Properties" FontSize="14" HorizontalAlignment="Center" Margin="5"/>
+      </Border>
+      <Border Background="{DynamicResource bg_Panel_Light}" CornerRadius="5">
+        <StackPanel Margin="10" Spacing="5" x:Name="cont_SidePanel_CustomProperties">
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

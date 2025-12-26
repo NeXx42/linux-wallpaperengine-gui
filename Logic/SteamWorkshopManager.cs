@@ -6,7 +6,7 @@ namespace Logic;
 
 public static class SteamWorkshopManager
 {
-    public static async Task<(SteamWorkshopEntry[]?, Exception? e)> FetchItems(WorkshopFilter filter)
+    public static async Task<DataFetchResponse> FetchItems(DataFetchRequest filter)
     {
         List<SteamWorkshopEntry> items = new List<SteamWorkshopEntry>();
 
@@ -14,7 +14,7 @@ public static class SteamWorkshopManager
         {
             using (HttpClient client = new HttpClient())
             {
-                string html = await client.GetStringAsync(filter.ConstructURL());
+                string html = await client.GetStringAsync(BuildURLFromFilter(filter));
 
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(html);
@@ -45,26 +45,25 @@ public static class SteamWorkshopManager
                     }
                 }
 
-                return (items.ToArray(), null);
+                return new DataFetchResponse(items.ToArray());
             }
         }
         catch (Exception e)
         {
-            return (null, e);
+            return new DataFetchResponse(e);
         }
     }
 
-
-    public struct WorkshopFilter
+    private static string BuildURLFromFilter(DataFetchRequest filter)
     {
-        public int page;
+        StringBuilder sb = new StringBuilder($"https://steamcommunity.com/workshop/browse/?appid={ConfigManager.WALLPAPER_ENGINE_ID}&");
 
-        public string ConstructURL()
+        if (!string.IsNullOrEmpty(filter.textFilter))
         {
-            StringBuilder sb = new StringBuilder($"https://steamcommunity.com/workshop/browse/?appid={ConfigManager.WALLPAPER_ENGINE_ID}&");
-
-            sb.Append($"&p={page}");
-            return sb.ToString();
+            sb.Append($"&searchtext={filter.textFilter}");
         }
+
+        sb.Append($"&p={filter.skip}");
+        return sb.ToString();
     }
 }

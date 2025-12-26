@@ -1,40 +1,39 @@
+using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using AvaloniaUI.Pages.Common;
 using AvaloniaUI.Utils;
 using Logic.Data;
 
-namespace AvaloniaUI.Pages._HomePage;
+namespace AvaloniaUI.Pages.Common;
 
-public partial class HomePage_Wallpaper : UserControl
+public partial class Common_Wallpaper : UserControl
 {
     private static Thickness? unselectedThickness;
     private static Thickness? selectedThickness;
     private static ImmutableSolidColorBrush? selectedBrush;
 
     private long? representingId;
-    private HomePage? master;
+    private IItemFormatterBase? master;
 
-    public HomePage_Wallpaper()
+    public Common_Wallpaper()
     {
         InitializeComponent();
 
-        img_Icon.PointerPressed += (_, __) => HandleSelection();
+        border.PointerPressed += (_, __) => HandleSelection();
     }
 
-    public async void StartDraw(WorkshopEntry entry, HomePage master)
+    public async void StartDraw(IWorkshopEntry entry, IItemFormatterBase master)
     {
         this.master = master;
-        this.representingId = entry.id;
+        this.representingId = entry.getId;
+        lbl_Title.Content = entry.getTitle;
 
-        lbl_Title.Content = "loading";
         img_Icon.Background = null;
-
-        await entry.DecodeBasic();
-        lbl_Title.Content = entry.title;
-
         ImageBrush? brush = await ImageFetcher.GetIcon(entry);
         img_Icon.Background = brush;
     }

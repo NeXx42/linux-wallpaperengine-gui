@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" x:Class="AvaloniaUI.Pages.Common.Common_ItemFormatter_Paginated"
+  xmlns:Common="clr-namespace:AvaloniaUI.Common">
+  <Grid Margin="10" RowDefinitions="*, Auto">
+
+    <WrapPanel x:Name="grid_Content_Container" HorizontalAlignment="Center" ItemSpacing="5" LineSpacing="5" />
+    <Label x:Name="lbl_Content_NetworkResponse"/>
+
+    <Grid Grid.Row="1">
+      <Border Background="Red" HorizontalAlignment="Left" CornerRadius="5">
+        <StackPanel Orientation="Horizontal" Spacing="5" Margin="5" Height="30">
+          <Common:Common_Button Label="1" Width="30" x:Name="btn_Page_1"/>
+          <Common:Common_Button Label="2" Width="30" x:Name="btn_Page_2"/>
+
+          <TextBox Text="3" HorizontalContentAlignment="Center" x:Name="inp_CurPage"/>
+
+          <Common:Common_Button Label="4" Width="30" x:Name="btn_Page_3"/>
+          <Common:Common_Button Label="5" Width="30" x:Name="btn_Page_4"/>
+
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

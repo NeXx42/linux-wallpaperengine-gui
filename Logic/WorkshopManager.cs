@@ -30,7 +30,10 @@ public static class WorkshopManager
             if (!long.TryParse(Path.GetFileName(dir.FullName), out long wallpaperId) || cachedEntries.ContainsKey(wallpaperId))
                 return;
 
-            cachedEntries.TryAdd(wallpaperId, new WorkshopEntry(wallpaperId, dir.FullName, dir.CreationTimeUtc));
+            WorkshopEntry entry = new WorkshopEntry(wallpaperId, dir.FullName, dir.CreationTimeUtc);
+            await entry.DecodeBasic();
+
+            cachedEntries.TryAdd(wallpaperId, entry);
         });
     }
 

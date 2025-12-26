@@ -76,8 +76,7 @@ public static class ImageFetchingManager
 
     private static async void HandleIconThread()
     {
-        int iterationLimit;
-        List<long> toComplete = new List<long>();
+        IEnumerable<long> toComplete = new List<long>();
 
         while (true)
         {
@@ -93,32 +92,27 @@ public static class ImageFetchingManager
             if (iconFetchQueue.Count == 0)
                 continue;
 
-            toComplete.Clear();
-            iterationLimit = 0;
+            toComplete = iconFetchQueue.Keys.Take(ICON_FETCH_PER_ITERATION);
 
-            foreach (KeyValuePair<long, IconFetchRequest> fetch in iconFetchQueue)
+            await Parallel.ForEachAsync(toComplete, async (long fetch, CancellationToken token) =>
             {
-                if (iterationLimit >= ICON_FETCH_PER_ITERATION)
-                    break;
+                if (!iconFetchQueue.TryGetValue(fetch, out IconFetchRequest? req) || req == null)
+                    return;
 
-                if (fetch.Value.path.StartsWith("https://"))
+                if (req.path.StartsWith("https://"))
                 {
-                    (byte[]? img, object? brush) = await webIconFetch!(fetch.Value.path);
-                    fetch.Value.result = brush;
+                    (byte[]? img, object? brush) = await webIconFetch!(req.path);
+                    req.result = brush;
 
-                    await CacheIntercept(fetch.Key, img);
+                    await CacheIntercept(fetch, img);
                 }
                 else
                 {
-                    fetch.Value.result = await iconFetchTask!(fetch.Value.path);
+                    req.result = await iconFetchTask!(req.path);
                 }
 
-
-                iconCache.TryAdd(fetch.Key, fetch.Value.result);
-
-                toComplete.Add(fetch.Key);
-                iterationLimit++;
-            }
+                iconCache.TryAdd(fetch, req.result);
+            });
 
             foreach (long complete in toComplete)
             {
