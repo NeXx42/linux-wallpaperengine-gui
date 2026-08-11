@@ -87,8 +87,9 @@ public static class SteamWorkshopManager
             await (activeQuery?.CancelAsync() ?? Task.CompletedTask);
             activeQuery = new CancellationTokenSource();
 
-            HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, BuildURLFromFilter(filter));
-            req.Headers.Add("x-valve-action-type", "OTEITVBA:Browse");
+            string url = BuildURLFromFilter(filter);
+            HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Add("x-valve-action-type", "c01qDV6jYXQx5fEYHzoJXsB8WNMVfAkX02y3S0Gq5kI:Browse");
             req.Headers.Add("x-valve-request-type", "routeAction");
 
             string browseSort = "";
@@ -294,7 +295,7 @@ public static class SteamWorkshopManager
 
     private static string BuildURLFromFilter(DataFetchRequest filter)
     {
-        StringBuilder sb = new StringBuilder($"https://steamcommunity.com/workshop/browse/?appid={ConfigManager.WALLPAPER_ENGINE_ID}&");
+        StringBuilder sb = new StringBuilder($"https://steamcommunity.com/workshop/browse/?appid={ConfigManager.WALLPAPER_ENGINE_ID}");
 
 
         if (!string.IsNullOrEmpty(filter.resolutionFilter))
