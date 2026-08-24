@@ -186,7 +186,7 @@ public partial class HomePage_SidePanel : UserControl, ISidebarContent
         if (selected == null)
             return;
 
-        await Database_Manager.Delete<dbo_WallpaperSettings>(SQLFilter.Equal(nameof(dbo_WallpaperSettings.wallpaperId), selected.getId));
+        await DatabaseManager.db!.Delete<dbo_WallpaperSettings>(SQLFilter.Equal(nameof(dbo_WallpaperSettings.wallpaperId), selected.getId));
         await (master?.Draw(selected) ?? Task.CompletedTask);
     }
 }

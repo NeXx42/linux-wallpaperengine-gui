@@ -1,4 +1,3 @@
-#!/home/matth/steamcmd-venv/bin/python3
 import sys
 import pexpect
 
@@ -12,7 +11,10 @@ PROMPTS = [
     pexpect.TIMEOUT
 ]
 
-child = pexpect.spawn('steamcmd', encoding='utf-8', timeout=120)
+if os.path.exists('/.flatpak-info'):
+    child = pexpect.spawn('flatpak-spawn', ['--host', 'steamcmd'], encoding='utf-8', timeout=120)
+else:
+    child = pexpect.spawn('steamcmd', encoding='utf-8', timeout=120)
 
 while True:
     index = child.expect(PROMPTS, timeout=120)

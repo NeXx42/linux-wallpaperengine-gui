@@ -61,7 +61,7 @@ public class WorkshopEntry : IWorkshopEntry
         iconPath = doc.RootElement.GetProperty("preview").GetString();
         tags = doc.RootElement.GetProperty("tags").Deserialize<string[]>();
 
-        dbo_WallpaperSettings? lastUsedConfig = await Database_Manager.GetItem<dbo_WallpaperSettings>(
+        dbo_WallpaperSettings? lastUsedConfig = await DatabaseManager.db!.GetItem<dbo_WallpaperSettings>(
             SQLFilter.Equal(nameof(dbo_WallpaperSettings.wallpaperId), id).
                     Equal(nameof(dbo_WallpaperSettings.settingKey), DefaultProps.DefaultSetting_LastUsedDate.ToString())
         );

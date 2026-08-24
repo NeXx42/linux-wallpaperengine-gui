@@ -26,7 +26,6 @@ public partial class App : Application
         }
     }
 
-
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -42,6 +41,7 @@ public partial class App : Application
                 return;
             }
 
+            desktop.ShutdownRequested += (sender, e) => LoggingManager.StopLogThread();
             desktop.MainWindow = new MainWindow();
         }
 

@@ -76,13 +76,13 @@ public static class WallpaperEngine
             return;
         }
 
-        await Database_Manager.AddOrUpdate(new dbo_Config()
+        await DatabaseManager.db!.AddOrUpdate(new dbo_Config()
         {
             key = ConfigManager.ConfigKeys.ExecutableLocation.ToString(),
             value = Path.Combine(path, folderName, "build", "output")
         }, SQLFilter.Equal(nameof(dbo_Config.key), ConfigManager.ConfigKeys.ExecutableLocation.ToString()));
 
-        await Database_Manager.AddOrUpdate(new dbo_Config()
+        await DatabaseManager.db!.AddOrUpdate(new dbo_Config()
         {
             key = ConfigManager.ConfigKeys.ExecutableType.ToString(),
             value = ((int)EngineType.Directory).ToString()
@@ -92,9 +92,11 @@ public static class WallpaperEngine
 
         async Task RunCommand(string workingDir, string command, params string[] args)
         {
-            ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = command;
-            info.WorkingDirectory = workingDir;
+            ProcessStartInfo info = new ProcessStartInfo
+            {
+                FileName = command,
+                WorkingDirectory = workingDir
+            };
 
             foreach (string arg in args)
                 info.ArgumentList.Add(arg);
@@ -195,20 +197,70 @@ public static class WallpaperEngine
         dbo_WallpaperSettings[] savedValues = await ConfigManager.GetWallpaperSettings(id.Value);
         WallpaperOptions options = new WallpaperOptions(savedValues);
 
-        KillExistingRuns(command);
+        await KillExistingRuns(command);
 
-        ProcessStartInfo info = options.CreateArgList();
-        info.FileName = command;
-        info.ArgumentList.Add(id.ToString()!);
+        LinkedList<string> args = options.CreateArgList();
+        args.AddLast(id.ToString()!);
 
-        info.UseShellExecute = false;
-        info.RedirectStandardOutput = true;
-        info.RedirectStandardError = true;
-        info.CreateNoWindow = true;
+        ProcessStartInfo info = new ProcessStartInfo()
+        {
+            FileName = command,
 
-        Process p = new Process();
-        p.StartInfo = info;
-        p.Start();
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        if (ConfigManager.IsFlatpak)
+        {
+            string xdgSession = info.EnvironmentVariables["XDG_SESSION_TYPE"] ?? "wayland";
+            LoggingManager.LogMessage($"Using XDG_SESSION_TYPE={xdgSession}");
+
+            // cannot for get this to work...
+            info.FileName = "flatpak-spawn";
+            info.ArgumentList.Add("--host");
+            info.ArgumentList.Add($"--setenv=XDG_SESSION_TYPE={xdgSession}");
+            info.ArgumentList.Add(command);
+
+            foreach (string arg in args)
+                info.ArgumentList.Add(arg);
+        }
+        else
+        {
+            foreach (string arg in args)
+                info.ArgumentList.Add(arg);
+        }
+
+        try
+        {
+            Process p = new Process()
+            {
+                StartInfo = info,
+                EnableRaisingEvents = true
+            };
+
+            LoggingManager.LogMessage($"Starting engine with following parameters - {string.Join(" ", args)}");
+
+            p.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                    LoggingManager.LogError(e.Data);
+            };
+
+            p.Exited += (sender, e) =>
+            {
+                LoggingManager.LogMessage($"Engine exited with code - {((Process?)sender)?.ExitCode}");
+
+                if (!ConfigManager.IsFlatpak)
+                    ((Process?)sender)?.Dispose();
+            };
+
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+        }
+        catch (Exception e) { LoggingManager.OnException(e); }
 
         // this isnt initialized when running as a startup
         if (WorkshopManager.TryGetWallpaperEntry(id, out WorkshopEntry wallpaperObj))
@@ -220,11 +272,11 @@ public static class WallpaperEngine
 
             if (saveScriptLocation != null)
             {
-                await SaveCommandToFile(command, info, saveScriptLocation.value);
+                await SaveCommandToFile(command, args, saveScriptLocation.value);
             }
 
             await ConfigManager.SetConfigValue(ConfigManager.ConfigKeys.LastSetWallpaper, id.ToString());
-            await Database_Manager.AddOrUpdate(new dbo_WallpaperSettings()
+            await DatabaseManager.db!.AddOrUpdate(new dbo_WallpaperSettings()
             {
                 wallpaperId = id.Value,
                 settingKey = DefaultProps.DefaultSetting_LastUsedDate.ToString(),
@@ -233,10 +285,9 @@ public static class WallpaperEngine
 
             wallpaperObj.lastUsed = DateTime.UtcNow;
         }
-
     }
 
-    private static async Task SaveCommandToFile(string command, ProcessStartInfo arguments, string? path)
+    private static async Task SaveCommandToFile(string command, LinkedList<string> arguments, string? path)
     {
         if (string.IsNullOrEmpty(path))
             return;
@@ -258,27 +309,19 @@ public static class WallpaperEngine
             return;
         }
 
-        ProcessStartInfo info = new ProcessStartInfo();
-        info.FileName = "/bin/echo";
-
-        info.ArgumentList.Add(command!);
-
-        foreach (var arg in arguments.ArgumentList)
-            info.ArgumentList.Add(arg);
-
-        info.RedirectStandardOutput = true;
-
-        using (Process p = Process.Start(info)!)
+        using (var writer = new StreamWriter(path))
         {
-            using (var writer = new StreamWriter(path))
-            {
-                await writer.WriteLineAsync("#!/bin/bash");
-                await writer.WriteLineAsync(await p.StandardOutput.ReadToEndAsync());
-            }
+            await writer.WriteLineAsync("#!/bin/bash");
+            await writer.WriteAsync(command);
 
-            p.WaitForExit();
-            GivePermission(path);
+            foreach (string arg in arguments)
+            {
+                await writer.WriteAsync(" ");
+                await writer.WriteAsync(arg);
+            }
         }
+
+        GivePermission(path);
 
         void GivePermission(string p)
         {
@@ -298,21 +341,40 @@ public static class WallpaperEngine
         }
     }
 
-    private static void KillExistingRuns(string exeName)
+    private static async Task KillExistingRuns(string exeName)
     {
-        foreach (var process in Process.GetProcesses())
+        if (ConfigManager.IsFlatpak)
         {
             try
             {
-                var processExe = process.MainModule?.FileName;
+                ProcessStartInfo psi = new ProcessStartInfo("flatpak-spawn");
+                psi.ArgumentList.Add("--host");
+                psi.ArgumentList.Add("pkill");
+                psi.ArgumentList.Add("-f");
+                psi.ArgumentList.Add(exeName);
 
-                if (processExe != null && Path.GetFullPath(processExe) == exeName)
-                {
-                    process.Kill();
-                    process.WaitForExit();
-                }
+                Process p = Process.Start(psi)!;
+                await p.WaitForExitAsync();
+                p.Dispose();
             }
-            catch { }
+            catch (Exception e) { LoggingManager.OnException(e); }
+        }
+        else
+        {
+            foreach (var process in Process.GetProcesses())
+            {
+                try
+                {
+                    var processExe = process.MainModule?.FileName;
+                    if (processExe != null && Path.GetFullPath(processExe) == exeName)
+                    {
+                        process.Kill();
+                        await process.WaitForExitAsync();
+                        process.Dispose();
+                    }
+                }
+                catch (Exception e) { LoggingManager.OnException(e); }
+            }
         }
     }
 
@@ -399,12 +461,12 @@ public static class WallpaperEngine
         }
 
 
-        public ProcessStartInfo CreateArgList(params string[] injectedArgs)
+        public LinkedList<string> CreateArgList(params string[] injectedArgs)
         {
-            ProcessStartInfo info = new ProcessStartInfo();
+            LinkedList<string> args = new LinkedList<string>();
 
             foreach (string arg in injectedArgs)
-                info.ArgumentList.Add(arg);
+                args.AddLast(arg);
 
             TryToAddProp(scalingOption, "--scaling", a => a.ToString()!);
             TryToAddProp(clampOptions ?? ClampOptions.clamp, "--clamp", a => a.ToString()!);
@@ -434,16 +496,16 @@ public static class WallpaperEngine
                     TryToAddProp(arg, "--set-property", a => a);
             }
 
-            info.ArgumentList.Add("--bg");
-            return info;
+            args.AddLast("--bg");
+            return args;
 
             void TryToAddProp<T>(T? value, string key, Func<T, string> getValue)
             {
                 if (value == null)
                     return;
 
-                info.ArgumentList.Add(key);
-                info.ArgumentList.Add(getValue(value!));
+                args.AddLast(key);
+                args.AddLast(getValue(value!));
             }
 
             void TryToAddSetting(bool val, string key)
@@ -451,7 +513,7 @@ public static class WallpaperEngine
                 if (!val)
                     return;
 
-                info.ArgumentList.Add(key);
+                args.AddLast(key);
             }
         }
 

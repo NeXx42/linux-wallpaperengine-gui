@@ -10,7 +10,6 @@ namespace AvaloniaUI.Pages._HomePage.WallpaperProperties;
 public partial class HomePage_WallpaperProperties_SceneTexture : UserControl, IWallpaperProperty
 {
     private string? key;
-    private bool isDirty = false;
 
     public HomePage_WallpaperProperties_SceneTexture()
     {

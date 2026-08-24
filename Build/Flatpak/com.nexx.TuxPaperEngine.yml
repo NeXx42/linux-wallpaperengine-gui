@@ -1,0 +1,32 @@
+app-id: com.nexx.TuxPaperEngine
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+command: TuxPaperEngine
+
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=home
+  - --talk-name=org.freedesktop.Flatpak
+
+modules:
+  - name: RunixLauncher
+    buildsystem: simple
+
+    build-commands:
+      - mkdir -p /app/bin
+      - cp -r * /app/bin/
+      - install -Dm644 TuxPaperEngine.desktop /app/share/applications/com.nexx.TuxPaperEngine.desktop
+      - install -Dm644 TuxPaperEngine-512.png /app/share/icons/hicolor/256x256/apps/com.nexx.TuxPaperEngine.png
+
+    sources:
+      - type: dir
+        path: ../Output/TuxPaperEngine
+      - type: file
+        path: ../Flatpak/TuxPaperEngine.desktop
+      - type: file
+        path: ../_Shared/TuxPaperEngine-512.png
